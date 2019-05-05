@@ -2,24 +2,29 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
 
-	"github.com/amendgit/base"
+	"github.com/amendgit/X"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
-	soruceDir = base.SourceDir()
-	cardsPath = path.Join(soruceDir, "cards")
+	soruceDir    = X.SourceDir()
+	cardsDir     = path.Join(soruceDir, "cards")
+	metadataPath = path.Join(soruceDir, "metadata.json")
 )
 
 func main() {
@@ -35,9 +40,11 @@ func main() {
 	case "n", "next":
 		nextCard(args)
 	case "sync":
-		syncCards()
+		syncMetadataIfNeeded()
 	case "test":
 		testCard(args)
+	case "build":
+		build()
 	}
 }
 
@@ -47,8 +54,8 @@ func showHelp(args []string) {
 
 func editCard(args []string) {
 	cardName := args[0]
-	cardPath := path.Join(cardsPath, cardName)
-	if base.IsPathExist(cardPath) {
+	cardPath := path.Join(cardsDir, cardName+".md")
+	if X.IsPathExist(cardPath) {
 		exec.Command("subl", cardPath).Run()
 		return
 	}
@@ -73,110 +80,121 @@ todo
 	exec.Command("subl", cardPath).Run()
 }
 
-type Card struct {
+type CardMetadata struct {
 	Name       string     `json:"name"`
 	ReviewTime *time.Time `json:"reviewTime,omitempty"`
 	Level      int        `json:"level"`
 }
 
 func nextCard(args []string) {
-	reviewCard := findNextCardToRview()
-	fmt.Printf("reviewCard: %v\n", reviewCard.Name)
-	cardPath := path.Join(cardsPath, reviewCard.Name)
-	bs, _ := ioutil.ReadFile(cardPath)
-	components := componentsFromCardContent(string(bs))
-	fmt.Println(components[0])
-	fmt.Println(components[1])
-	var input string
-	fmt.Scanf("%s", &input)
-	fmt.Println(components[2])
-	fmt.Printf("1.记得      2.不记得\n")
-	var option int
-	fmt.Scanf("%d", &option)
-	bs, _ = ioutil.ReadFile(path.Join(soruceDir, "cards.json"))
-	if option == 1 {
-		reviewCard.Level = reviewCard.Level + 1
-		duration := time.Duration(math.Exp(float64(reviewCard.Level))*24) * time.Hour
-		reviewTime := time.Now().Local().Add(duration)
-		reviewCard.ReviewTime = &reviewTime
-	} else if option == 2 {
-		duration := time.Duration(math.Exp(float64(reviewCard.Level))*24) * time.Hour
-		reviewTime := time.Now().Local().Add(duration)
-		reviewCard.ReviewTime = &reviewTime
-	} else {
+	syncMetadataIfNeeded()
+	bs, _ := ioutil.ReadFile(metadataPath)
+	cardMetadatas := []CardMetadata{}
+	json.Unmarshal(bs, &cardMetadatas)
+	index := func() int {
+		now := time.Now()
+		for i := 0; i < len(cardMetadatas); i++ {
+			if cardMetadatas[i].ReviewTime != nil && cardMetadatas[i].ReviewTime.Before(now) {
+				return i
+			}
+		}
+		var indexes []int
+		for i := 0; i < len(cardMetadatas); i++ {
+			if cardMetadatas[i].Level == 0 {
+				indexes = append(indexes, i)
+			}
+		}
+		if len(indexes) == 0 {
+			return -1
+		}
+		fmt.Println("随机抽一张新的卡片学习")
+		rand.Seed(time.Now().Unix())
+		return indexes[rand.Intn(len(indexes))]
+	}()
+	if index == -1 {
+		fmt.Println("暂时没有可以复习的卡片")
 		return
 	}
-	cards := []Card{}
-	json.Unmarshal(bs, &cards)
-	for i, card := range cards {
-		if card.Name == reviewCard.Name {
-			cards[i] = *reviewCard
-			break
-		}
+	cardMetadata := &cardMetadatas[index]
+	fmt.Printf("准备复习卡片: %v\n", cardMetadata.Name)
+	cardPath := path.Join(cardsDir, cardMetadata.Name)
+	bs, _ = ioutil.ReadFile(cardPath)
+	components := componentsFromString(string(bs))
+	fmt.Println(components[0])
+	fmt.Println(components[1])
+	var anyKey string
+	fmt.Scanf("%s", &anyKey)
+	fmt.Printf("%v\n\n", components[2])
+	var option int
+	for option <= 0 || option > 1 {
+		fmt.Printf("1.记得      2.不记得\n")
+		fmt.Scanf("%d", &option)
 	}
-	bs, _ = json.MarshalIndent(cards, "", "    ")
-	ioutil.WriteFile(path.Join(soruceDir, "cards.json"), bs, 0666)
+	if option == 1 {
+		cardMetadata.Level = cardMetadata.Level + 1
+	}
+	bs, _ = ioutil.ReadFile(metadataPath)
+	duration := time.Duration(math.Exp(float64(cardMetadata.Level))*24) * time.Hour
+	reviewTime := time.Now().Local().Add(duration)
+	cardMetadata.ReviewTime = &reviewTime
+	bs, _ = json.MarshalIndent(cardMetadatas, "", "    ")
+	ioutil.WriteFile(metadataPath, bs, 0666)
 }
 
-func findNextCardToRview() *Card {
-	bs, _ := ioutil.ReadFile(path.Join(soruceDir, "cards.json"))
-	cards := []Card{}
-	json.Unmarshal(bs, &cards)
-	var expiredCard *Card
-	now := time.Now()
-	for _, card := range cards {
-		if card.ReviewTime == nil {
-			continue
-		}
-		if card.ReviewTime.Before(now) {
-			expiredCard = &card
-			break
-		}
+func syncMetadataIfNeeded() {
+	db, err := sql.Open("sqlite3", "./ask.db")
+	if err != nil {
+		log.Fatal(err)
 	}
-	if expiredCard != nil {
-		return expiredCard
+	defer db.Close()
+	_, err = db.Exec(`
+	create table if not exists cards (
+		id integer primary key autoincrement,
+		title char(50) not null,
+		question text not null,
+		answer text,
+		create_time datetime default current_timestamp,
+		review_time datetime,
+		level integer default 0
+	)`)
+	if err != nil {
+		log.Fatal(err)
 	}
-	var newCards []Card
-	for _, card := range cards {
-		if card.Level == 0 {
-			newCards = append(newCards, card)
-		}
-	}
-	if len(newCards) == 0 {
-		fmt.Println("暂时没有可以复习的卡片")
-		return nil
-	}
-	fmt.Println("随机抽一张卡片")
-	randomCard := newCards[rand.New(rand.NewSource(time.Now().UnixNano())).Intn(len(newCards))]
-	return &randomCard
-}
 
-func syncCards() {
-	finfos, _ := ioutil.ReadDir(cardsPath)
-	cards := []interface{}{}
-	for _, finf := range finfos {
-		card := map[string]string{}
-		card["name"] = finf.Name()
-		card["level"] = "0"
+	metaInfo, _ := os.Stat(metadataPath)
+	cardInfos, _ := ioutil.ReadDir(cardsDir)
+	cards := []CardMetadata{}
+	needUpdate := false
+	if !X.IsPathExist(metadataPath) {
+		needUpdate = true
+	}
+	for _, cardInfo := range cardInfos {
+		card := CardMetadata{}
+		card.Name = cardInfo.Name()
+		card.Level = 0
 		cards = append(cards, card)
+		if !needUpdate && cardInfo.ModTime().After(metaInfo.ModTime()) {
+			needUpdate = true
+		}
 	}
-	cardsJson, _ := os.Create(path.Join(soruceDir, "cards.json"))
-	defer cardsJson.Close()
+	if !needUpdate {
+		return
+	}
+	fmt.Println("正在更新cards.json")
 	bs, _ := json.MarshalIndent(cards, "", "    ")
-	println(string(bs))
-	cardsJson.Write(bs)
+	ioutil.WriteFile(metadataPath, bs, 0666)
 }
 
 func testCard(args []string) {
 	cardName := args[0]
-	cardPath := path.Join(cardsPath, cardName)
+	cardPath := path.Join(cardsDir, cardName)
 	bs, err := ioutil.ReadFile(cardPath)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	seps := []string{"<!--front-->", "<!--back-->"}
-	lines := base.Lines(string(bs))
+	lines := X.Lines(string(bs))
 	l, h, i := 0, 0, 0
 	for h < len(lines) {
 		for h < len(lines) && (i == len(seps) || !strings.Contains(lines[h], seps[i])) {
@@ -188,9 +206,9 @@ func testCard(args []string) {
 	}
 }
 
-func componentsFromCardContent(content string) []string {
+func componentsFromString(content string) []string {
 	seps := []string{"<!--front-->", "<!--back-->"}
-	lines := base.Lines(string(content))
+	lines := X.Lines(string(content))
 	var components []string
 	l, h, i := 0, 0, 0
 	for h < len(lines) {
@@ -202,4 +220,11 @@ func componentsFromCardContent(content string) []string {
 		l, h, i = h+1, h+1, i+1
 	}
 	return components
+}
+
+func build() {
+	goPath := os.Getenv("GOPATH")
+	srcPath := path.Join(goPath, "src")
+	pkgPath, _ := filepath.Rel(srcPath, soruceDir)
+	exec.Command("go", "build", pkgPath).Run()
 }
