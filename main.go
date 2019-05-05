@@ -17,7 +17,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/amendgit/X"
+	X "github.com/amendgit/X"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -149,7 +149,7 @@ func syncMetadataIfNeeded() {
 	defer db.Close()
 	_, err = db.Exec(`
 	create table if not exists cards (
-		id integer primary key autoincrement,
+		id char(50) primary key not null,
 		title char(50) not null,
 		question text not null,
 		answer text,
@@ -160,29 +160,26 @@ func syncMetadataIfNeeded() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	metaInfo, _ := os.Stat(metadataPath)
 	cardInfos, _ := ioutil.ReadDir(cardsDir)
-	cards := []CardMetadata{}
-	needUpdate := false
-	if !X.IsPathExist(metadataPath) {
-		needUpdate = true
+	tx, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	stmt, err := tx.Prepare("insert into cards(id, title, question, answer) values(?, ?, ?, ?)")
+	if err != nil {
+		log.Fatal(err)
 	}
 	for _, cardInfo := range cardInfos {
-		card := CardMetadata{}
-		card.Name = cardInfo.Name()
-		card.Level = 0
-		cards = append(cards, card)
-		if !needUpdate && cardInfo.ModTime().After(metaInfo.ModTime()) {
-			needUpdate = true
+		name := cardInfo.Name()
+		bs, err := ioutil.ReadFile("./cards/" + cardInfo.Name())
+		if err != nil {
+			log.Fatal(err)
 		}
+		comps := componentsFromString(string(bs))
+		stmt.Exec(name, name, comps[1], comps[2])
 	}
-	if !needUpdate {
-		return
-	}
-	fmt.Println("正在更新cards.json")
-	bs, _ := json.MarshalIndent(cards, "", "    ")
-	ioutil.WriteFile(metadataPath, bs, 0666)
+	defer db.Close()
+	tx.Commit()
 }
 
 func testCard(args []string) {
