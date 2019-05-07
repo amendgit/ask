@@ -1,11 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"math/rand"
 	"os"
@@ -16,7 +14,6 @@ import (
 	"time"
 
 	"github.com/amendgit/X"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -38,7 +35,7 @@ func main() {
 	case "n", "next":
 		nextCard(args)
 	case "sync":
-		syncMetadataIfNeeded()
+		sync()
 	case "build":
 		build()
 	}
@@ -64,8 +61,12 @@ type CardMetadata struct {
 	Level      int        `json:"level"`
 }
 
+// ReviewCard 选取下一张需要复习的卡片，并进行复习。
+func ReviewCard() {
+
+}
+
 func nextCard(args []string) {
-	syncMetadataIfNeeded()
 	bs, _ := ioutil.ReadFile(metadataPath)
 	cardMetadatas := []CardMetadata{}
 	json.Unmarshal(bs, &cardMetadatas)
@@ -119,49 +120,13 @@ func nextCard(args []string) {
 	ioutil.WriteFile(metadataPath, bs, 0666)
 }
 
-func syncMetadataIfNeeded() {
-	db, err := sql.Open("sqlite3", "./ask.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-	_, err = db.Exec(`
-	create table if not exists cards (
-		id char(50) primary key not null,
-		title char(50) not null,
-		question text not null,
-		answer text,
-		review_time datetime default current_timestamp,
-		level integer default 0,
-		hash char(16)
-	)`)
-	if err != nil {
-		log.Fatal(err)
-	}
+func sync() {
+	cardDAO := NewCardDAO()
 	cardFileInfos, _ := ioutil.ReadDir(cardsDir)
-	tx, _ := db.Begin()
-	insertStmt, err := tx.Prepare("insert or ignore into cards(id, title, question, answer, hash) values(?, ?, ?, ?, ?)")
-	if err != nil {
-		log.Fatal(err)
-	}
-	updateStmt, err := tx.Prepare("update cards set id=?, title=?, question=?, answer=?, hash=? where id==? and hash!=?")
-	if err != nil {
-		log.Fatal(err)
-	}
 	for _, cardFileInfo := range cardFileInfos {
-		var card Card
-		card.FromFile("./cards/" + cardFileInfo.Name())
-		_, err := insertStmt.Exec(card.ID, card.Title, card.Question, card.Answer, card.Hash)
-		if err != nil {
-			log.Println(err)
-		}
-		_, err = updateStmt.Exec(card.ID, card.Title, card.Question, card.Answer, card.Hash, card.ID, card.Hash)
-		if err != nil {
-			log.Println(err)
-		}
+		card := cardDAO.ReadFromFile("./cards/" + cardFileInfo.Name())
+		cardDAO.Update(card)
 	}
-	defer db.Close()
-	tx.Commit()
 }
 
 func componentsFromString(content string) []string {
