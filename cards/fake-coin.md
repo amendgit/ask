@@ -2,7 +2,7 @@
 id: fake-coin
 title: null
 tags:
-	- null
+    - null
 ---
 
 <!--front-->

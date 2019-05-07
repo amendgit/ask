@@ -2,8 +2,8 @@
 id: arc-practice
 title: 使用自动引用计数应遵循的最佳实践
 tags:
-	- oc
-	- ios
+    - oc
+    - ios
 ---
 
 <!--front-->

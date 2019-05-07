@@ -2,7 +2,7 @@
 id: dto
 title: 什么DTO对象？
 tags:
-	- design
+    - design
 ---
 
 <!--front-->

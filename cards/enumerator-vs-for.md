@@ -2,7 +2,7 @@
 id: enumerator-vs-for
 title: null
 tags:
-	- null
+    - null
 ---
 
 <!--front-->

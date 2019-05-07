@@ -17,7 +17,7 @@ import (
 	"text/template"
 	"time"
 
-	X "github.com/amendgit/X"
+	"github.com/amendgit/X"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -64,7 +64,7 @@ func editCard(args []string) {
 id: {{.id}}
 title: null
 tags:
-	- null
+    - null
 ---
 
 <!--front-->
@@ -153,30 +153,34 @@ func syncMetadataIfNeeded() {
 		title char(50) not null,
 		question text not null,
 		answer text,
-		create_time datetime default current_timestamp,
 		review_time datetime,
-		level integer default 0
+		level integer default 0,
+		hash char(16)
 	)`)
 	if err != nil {
 		log.Fatal(err)
 	}
-	cardInfos, _ := ioutil.ReadDir(cardsDir)
-	tx, err := db.Begin()
+	cardFileInfos, _ := ioutil.ReadDir(cardsDir)
+	tx, _ := db.Begin()
+	insertStmt, err := tx.Prepare("insert or ignore into cards(id, title, question, answer, hash) values(?, ?, ?, ?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
-	stmt, err := tx.Prepare("insert into cards(id, title, question, answer) values(?, ?, ?, ?)")
+	updateStmt, err := tx.Prepare("update cards set id=?, title=?, question=?, answer=?, hash=? where id==? and hash!=?")
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, cardInfo := range cardInfos {
-		name := cardInfo.Name()
-		bs, err := ioutil.ReadFile("./cards/" + cardInfo.Name())
+	for _, cardFileInfo := range cardFileInfos {
+		var card Card
+		card.FromFile("./cards/" + cardFileInfo.Name())
+		_, err := insertStmt.Exec(card.Metadata.ID, card.Metadata.Title, card.Question, card.Answer, card.Hash)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
-		comps := componentsFromString(string(bs))
-		stmt.Exec(name, name, comps[1], comps[2])
+		_, err = updateStmt.Exec(card.Metadata.ID, card.Metadata.Title, card.Question, card.Answer, card.Hash, card.Metadata.ID, card.Hash)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	defer db.Close()
 	tx.Commit()

@@ -2,7 +2,7 @@
 id: concurrency-vs-parallelism
 title: 并发和并行的区别是什么？
 tags:
-	- null
+    - null
 ---
 
 <!--front-->

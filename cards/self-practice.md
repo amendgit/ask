@@ -2,7 +2,7 @@
 id: self-practice
 title: 使用self的最佳实践
 tags:
-	- null
+    - null
 ---
 
 <!--front-->

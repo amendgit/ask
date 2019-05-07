@@ -2,8 +2,8 @@
 id: arc-rules
 title: 使用自动引用计数应遵循的原则
 tags:
-	- oc
-	- ios
+    - oc
+    - ios
 ---
 
 <!--front-->

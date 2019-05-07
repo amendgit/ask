@@ -1,12 +1,12 @@
 ---
-id: designated-init
+id: oc-model-practice
 title: null
 tags:
     - null
 ---
 
 <!--front-->
-todo
+Object-c实现model的最佳实践？
 
 <!--back-->
 todo

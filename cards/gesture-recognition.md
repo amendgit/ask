@@ -2,7 +2,7 @@
 id: gesture-recognition
 title: null
 tags:
-	- null
+    - null
 ---
 
 <!--front-->

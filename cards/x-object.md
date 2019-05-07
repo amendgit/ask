@@ -2,7 +2,7 @@
 id: x-object
 title: 几种对象(PO,VO,DAO,BO,POJO，DTO)解释
 tags:
-	- design
+    - design
 ---
 
 <!--front-->
