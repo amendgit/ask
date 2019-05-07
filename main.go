@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/amendgit/X"
@@ -41,8 +39,6 @@ func main() {
 		nextCard(args)
 	case "sync":
 		syncMetadataIfNeeded()
-	case "test":
-		testCard(args)
 	case "build":
 		build()
 	}
@@ -53,30 +49,12 @@ func showHelp(args []string) {
 }
 
 func editCard(args []string) {
-	cardName := args[0]
-	cardPath := path.Join(cardsDir, cardName+".md")
+	cardID := args[0]
+	cardPath := path.Join(cardsDir, cardID+".md")
 	if X.IsPathExist(cardPath) {
-		exec.Command("subl", cardPath).Run()
-		return
+		bs := GenerateEmptyCardContent(cardID)
+		ioutil.WriteFile(cardPath, bs, 0666)
 	}
-	tmpl, _ := template.New("card").Parse(
-		`---
-id: {{.id}}
-title: null
-tags:
-    - null
----
-
-<!--front-->
-todo
-
-<!--back-->
-todo
-`)
-	data := map[string]string{"id": cardName}
-	buf := bytes.NewBuffer(nil)
-	tmpl.Execute(buf, data)
-	ioutil.WriteFile(cardPath, buf.Bytes(), 0666)
 	exec.Command("subl", cardPath).Run()
 }
 
@@ -153,7 +131,7 @@ func syncMetadataIfNeeded() {
 		title char(50) not null,
 		question text not null,
 		answer text,
-		review_time datetime,
+		review_time datetime default current_timestamp,
 		level integer default 0,
 		hash char(16)
 	)`)
@@ -173,38 +151,17 @@ func syncMetadataIfNeeded() {
 	for _, cardFileInfo := range cardFileInfos {
 		var card Card
 		card.FromFile("./cards/" + cardFileInfo.Name())
-		_, err := insertStmt.Exec(card.Metadata.ID, card.Metadata.Title, card.Question, card.Answer, card.Hash)
+		_, err := insertStmt.Exec(card.ID, card.Title, card.Question, card.Answer, card.Hash)
 		if err != nil {
 			log.Println(err)
 		}
-		_, err = updateStmt.Exec(card.Metadata.ID, card.Metadata.Title, card.Question, card.Answer, card.Hash, card.Metadata.ID, card.Hash)
+		_, err = updateStmt.Exec(card.ID, card.Title, card.Question, card.Answer, card.Hash, card.ID, card.Hash)
 		if err != nil {
 			log.Println(err)
 		}
 	}
 	defer db.Close()
 	tx.Commit()
-}
-
-func testCard(args []string) {
-	cardName := args[0]
-	cardPath := path.Join(cardsDir, cardName)
-	bs, err := ioutil.ReadFile(cardPath)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	seps := []string{"<!--front-->", "<!--back-->"}
-	lines := X.Lines(string(bs))
-	l, h, i := 0, 0, 0
-	for h < len(lines) {
-		for h < len(lines) && (i == len(seps) || !strings.Contains(lines[h], seps[i])) {
-			h++
-		}
-		component := strings.Join(lines[l:h], "\n")
-		fmt.Println(component)
-		l, h, i = h+1, h+1, i+1
-	}
 }
 
 func componentsFromString(content string) []string {
