@@ -19,8 +19,8 @@ type Card struct {
 	Level      int
 }
 
-// GenerateEmptyCardContent 生成一张空的卡片的内容
-func GenerateEmptyCardContent(id string) []byte {
+// GenerateAnEmptyCard 生成一张空的卡片的内容
+func GenerateAnEmptyCard(id string) []byte {
 	tmpl, _ := template.New("card").Parse(
 		`---
 id: {{.id}}

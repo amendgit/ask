@@ -47,7 +47,7 @@ func update(args []string) {
 	cardID := args[0]
 	cardPath := path.Join(cardsDir, cardID+".md")
 	if !kit.IsPathExist(cardPath) {
-		bs := GenerateEmptyCardContent(cardID)
+		bs := GenerateAnEmptyCard(cardID)
 		ioutil.WriteFile(cardPath, bs, 0666)
 	}
 	exec.Command("code", cardPath).Run()
