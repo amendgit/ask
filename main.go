@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"os/exec"
 	"path"
+	"time"
 
 	"github.com/amendgit/kit"
 )
@@ -71,6 +73,9 @@ func review() {
 	if option == 1 {
 		card.Level = card.Level + 1
 	}
+
+	card.ReviewTime = time.Now().Add(time.Duration(math.Exp(float64(card.Level))*24) * time.Hour)
+	cardDAO.Update(card)
 }
 
 // sync 将cards目录下的markdown文件，同步到数据库中去。
@@ -79,7 +84,7 @@ func sync() {
 	cardFileInfos, _ := ioutil.ReadDir(cardsDir)
 	for _, cardFileInfo := range cardFileInfos {
 		card := cardDAO.ReadFile("./cards/" + cardFileInfo.Name())
-		cardDAO.Update(card)
+		cardDAO.Add(card)
 	}
 }
 

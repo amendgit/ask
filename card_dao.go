@@ -33,9 +33,8 @@ func (cardDAO *CardDAO) Get(id string) *Card {
 	return nil
 }
 
-// Update 更新一个卡片的数据到数据库中
-func (cardDAO *CardDAO) Update(card *Card) {
-	log.Println(card.String())
+// Add 添加一个卡片的数据到数据库中
+func (cardDAO *CardDAO) Add(card *Card) {
 	db := GetAskDB()
 	tx, _ := db.Begin()
 	insertStmt, err := tx.Prepare("insert or ignore into cards(id, title, question, answer, hash) values(?, ?, ?, ?, ?)")
@@ -43,6 +42,7 @@ func (cardDAO *CardDAO) Update(card *Card) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// 如果记录已经存在，但是hash不一样，说明文件的内容发生了变化，需要刷新该条记录。
 	updateStmt, err := tx.Prepare("update cards set id=?, title=?, question=?, answer=?, hash=? where id==? and hash!=?")
 	if err != nil {
 		log.Fatal(err)
@@ -54,6 +54,20 @@ func (cardDAO *CardDAO) Update(card *Card) {
 	_, err = updateStmt.Exec(card.ID, card.Title, card.Question, card.Answer, card.Hash, card.ID, card.Hash)
 	if err != nil {
 		log.Println(err)
+	}
+}
+
+// Update 更新一个卡片的数据
+func (cardDAO *CardDAO) Update(card *Card) {
+	db := GetAskDB()
+	tx, _ := db.Begin()
+	updateStmt, err := tx.Prepare("update cards set title=?, question=?, answer=?, review_time=?, card.Level where id==?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = updateStmt.Exec(card.Title, card.Question, card.Answer, card.ReviewTime, card.Level, card.ID)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
