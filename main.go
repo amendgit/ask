@@ -86,5 +86,5 @@ func sync() {
 
 // build 方法构建自身
 func build() {
-	exec.Command("go", "build", "github.com/amendgit/ask").Run()
+	exec.Command("go", "install", "github.com/amendgit/ask").Run()
 }
