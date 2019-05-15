@@ -58,22 +58,17 @@ func review() {
 	card := cardDAO.PickOneCard()
 	fmt.Printf("准备复习卡片: %v\n\n", card.ID)
 	fmt.Printf("Question:\n %s\n\n", card.Question)
-
 	var anyKey string
 	fmt.Scanf("%s", &anyKey)
-
 	fmt.Printf("Answer:\n %s\n\n", card.Answer)
-
 	var option int
 	for option <= 0 || option > 2 {
 		fmt.Printf("1.记得            2.不记得\n")
 		fmt.Scanf("%d", &option)
 	}
-
 	if option == 1 {
 		card.Level = card.Level + 1
 	}
-
 	card.ReviewTime = time.Now().Add(time.Duration(math.Exp(float64(card.Level))*24) * time.Hour)
 	cardDAO.Update(card)
 }
