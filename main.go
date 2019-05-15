@@ -61,12 +61,12 @@ func review() {
 	var anyKey string
 	fmt.Scanf("%s", &anyKey)
 	fmt.Printf("Answer:\n %s\n\n", card.Answer)
-	var option int
-	for option <= 0 || option > 2 {
+	var opt int
+	for opt <= 0 || opt > 2 {
 		fmt.Printf("1.记得            2.不记得\n")
-		fmt.Scanf("%d", &option)
+		fmt.Scanf("%d", &opt)
 	}
-	if option == 1 {
+	if opt == 1 {
 		card.Level = card.Level + 1
 	}
 	card.ReviewTime = time.Now().Add(time.Duration(math.Exp(float64(card.Level))*24) * time.Hour)
