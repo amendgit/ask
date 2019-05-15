@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"strings"
 	"text/template"
 	"time"
 )
@@ -38,4 +39,11 @@ todo
 	buf := bytes.NewBuffer(nil)
 	tmpl.Execute(buf, data)
 	return buf.Bytes()
+}
+
+func (card *Card) String() string {
+	s := ""
+	s = s + "tags: " + "[" + strings.Join(card.Tags, ",") + "]\n"
+	s = s + "title: " + card.Title + "\n"
+	return s
 }

@@ -25,7 +25,7 @@ ACID，是指在可靠数据库管理系统（DBMS）中，事务(transaction)�
 * 持久性（Durability）：持久性，意味着在事务完成以后，该事务所对数据库所作的更改便持久的保存在数据库之中，并不会被回滚。
 这是可靠数据库所应具备的几个特性.	
 `)
-	got := card.Metadata.String()
+	got := card.String()
 	expect := `tags: [database,interview]
 title: DBMS中的ACID指的是什么？
 `
