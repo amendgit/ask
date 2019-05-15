@@ -13,9 +13,8 @@ import (
 )
 
 var (
-	sourceDir    = kit.SourceDir()
-	cardsDir     = path.Join(sourceDir, "cards")
-	metadataPath = path.Join(sourceDir, "metadata.json")
+	sourceDir = kit.SourceDir()
+	cardsDir  = path.Join(sourceDir, "cards")
 )
 
 func main() {
