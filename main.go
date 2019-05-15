@@ -83,22 +83,6 @@ func sync() {
 	}
 }
 
-func componentsFromString(content string) []string {
-	seps := []string{"<!--front-->", "<!--back-->"}
-	lines := kit.Lines(string(content))
-	var components []string
-	l, h, i := 0, 0, 0
-	for h < len(lines) {
-		for h < len(lines) && (i == len(seps) || !strings.Contains(lines[h], seps[i])) {
-			h++
-		}
-		component := strings.Join(lines[l:h], "\n")
-		components = append(components, component)
-		l, h, i = h+1, h+1, i+1
-	}
-	return components
-}
-
 // build 方法构建自身
 func build() {
 	exec.Command("go", "build", "github.com/amendgit/ask").Run()
