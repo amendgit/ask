@@ -38,6 +38,8 @@ func main() {
 		sync()
 	case "build":
 		build()
+	default:
+		ReviewCard()
 	}
 }
 
@@ -48,11 +50,11 @@ func showHelp(args []string) {
 func editCard(args []string) {
 	cardID := args[0]
 	cardPath := path.Join(cardsDir, cardID+".md")
-	if X.IsPathExist(cardPath) {
+	if !X.IsPathExist(cardPath) {
 		bs := GenerateEmptyCardContent(cardID)
 		ioutil.WriteFile(cardPath, bs, 0666)
 	}
-	exec.Command("subl", cardPath).Run()
+	exec.Command("code", cardPath).Run()
 }
 
 type CardMetadata struct {
@@ -63,7 +65,25 @@ type CardMetadata struct {
 
 // ReviewCard 选取下一张需要复习的卡片，并进行复习。
 func ReviewCard() {
+	cardDAO := NewCardDAO()
+	card := cardDAO.PickOneCard()
+	fmt.Printf("准备复习卡片: %v\n\n", card.ID)
+	fmt.Printf("Question:\n %s\n\n", card.Question)
 
+	var anyKey string
+	fmt.Scanf("%s", &anyKey)
+
+	fmt.Printf("Answer:\n %s\n\n", card.Answer)
+
+	var option int
+	for option <= 0 || option > 2 {
+		fmt.Printf("1.记得            2.不记得\n")
+		fmt.Scanf("%d", &option)
+	}
+
+	if option == 1 {
+		card.Level = card.Level + 1
+	}
 }
 
 func nextCard(args []string) {

@@ -28,6 +28,7 @@ type Card struct {
 	Answer     string
 	ReviewTime time.Time
 	Hash       string
+	Level      int
 }
 
 // GenerateEmptyCardContent 生成一张空的卡片的内容

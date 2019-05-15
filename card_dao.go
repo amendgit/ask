@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -34,9 +35,11 @@ func (cardDAO *CardDAO) Get(id string) *Card {
 
 // Update 更新一个卡片的数据到数据库中
 func (cardDAO *CardDAO) Update(card *Card) {
+	log.Println(card.String())
 	db := GetAskDB()
 	tx, _ := db.Begin()
 	insertStmt, err := tx.Prepare("insert or ignore into cards(id, title, question, answer, hash) values(?, ?, ?, ?, ?)")
+	defer tx.Commit()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,12 +55,68 @@ func (cardDAO *CardDAO) Update(card *Card) {
 	if err != nil {
 		log.Println(err)
 	}
-	tx.Commit()
 }
 
 // Delete 从数据库中删除一条记录
 func (cardDAO *CardDAO) Delete(id string) {
 
+}
+
+// PickOneCard 优先找是否有过期的卡片，没有的话再找一张新的卡片。
+func (cardDAO *CardDAO) PickOneCard() *Card {
+	card := cardDAO.PickOneOutdateCard()
+	if card != nil {
+		return card
+	}
+	return cardDAO.PickOneNewCard()
+}
+
+// PickOneNewCard 从新的卡片中，随机选取一张卡片。
+func (cardDAO *CardDAO) PickOneNewCard() *Card {
+	db := GetAskDB()
+	rows, err := db.Query("select id, title, question, answer, level from cards where level == 0")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	var cards []Card
+	for rows.Next() {
+		var card Card
+		err := rows.Scan(&card.ID, &card.Title, &card.Question, &card.Answer, &card.Level)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cards = append(cards, card)
+	}
+	if len(cards) == 0 {
+		return nil
+	}
+	rand.Seed(time.Now().Unix())
+	return &cards[rand.Intn(len(cards))]
+}
+
+// PickOneOutdateCard 从过期的卡片中，随机选取一张卡片。
+func (cardDAO *CardDAO) PickOneOutdateCard() *Card {
+	db := GetAskDB()
+	rows, err := db.Query("select id, title, question, answer, review_time from cards where review_time < date('now') and level > 0")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	var cards []Card
+	for rows.Next() {
+		var card Card
+		err := rows.Scan(&card.ID, &card.Title, &card.Question, &card.Answer, &card.ReviewTime, &card.Level)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cards = append(cards, card)
+	}
+	if len(cards) == 0 {
+		return nil
+	}
+	rand.Seed(time.Now().Unix())
+	return &cards[rand.Intn(len(cards))]
 }
 
 // ReadFromFile 从文件中读取文件
