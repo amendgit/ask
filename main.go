@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strings"
 
 	"github.com/amendgit/kit"
 )
@@ -74,6 +73,7 @@ func review() {
 	}
 }
 
+// sync 将cards目录下的markdown文件，同步到数据库中去。
 func sync() {
 	cardDAO := NewCardDAO()
 	cardFileInfos, _ := ioutil.ReadDir(cardsDir)
@@ -99,6 +99,7 @@ func componentsFromString(content string) []string {
 	return components
 }
 
+// build 方法构建自身
 func build() {
 	exec.Command("go", "build", "github.com/amendgit/ask").Run()
 }
