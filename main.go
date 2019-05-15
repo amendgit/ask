@@ -144,7 +144,7 @@ func sync() {
 	cardDAO := NewCardDAO()
 	cardFileInfos, _ := ioutil.ReadDir(cardsDir)
 	for _, cardFileInfo := range cardFileInfos {
-		card := cardDAO.ReadFromFile("./cards/" + cardFileInfo.Name())
+		card := cardDAO.ReadFile("./cards/" + cardFileInfo.Name())
 		cardDAO.Update(card)
 	}
 }

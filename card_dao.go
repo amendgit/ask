@@ -119,17 +119,17 @@ func (cardDAO *CardDAO) PickOneOutdateCard() *Card {
 	return &cards[rand.Intn(len(cards))]
 }
 
-// ReadFromFile 从文件中读取文件
-func (cardDAO *CardDAO) ReadFromFile(path string) *Card {
+// ReadFile 从文件中读取文件
+func (cardDAO *CardDAO) ReadFile(path string) *Card {
 	bs, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil
 	}
-	return cardDAO.ParseFromString(string(bs))
+	return cardDAO.ParseString(string(bs))
 }
 
-// ParseFromString 从字符串中解析卡片数据
-func (cardDAO *CardDAO) ParseFromString(s string) *Card {
+// ParseString 从字符串中解析卡片数据
+func (cardDAO *CardDAO) ParseString(s string) *Card {
 	seps := []string{"<!--front-->", "<!--back-->"}
 	lines := kit.Lines(string(s))
 	var components []string
