@@ -13,13 +13,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/amendgit/X"
+	"github.com/amendgit/kit"
 )
 
 var (
-	soruceDir    = X.SourceDir()
-	cardsDir     = path.Join(soruceDir, "cards")
-	metadataPath = path.Join(soruceDir, "metadata.json")
+	sourceDir    = kit.SourceDir()
+	cardsDir     = path.Join(sourceDir, "cards")
+	metadataPath = path.Join(sourceDir, "metadata.json")
 )
 
 func main() {
@@ -50,7 +50,7 @@ func showHelp(args []string) {
 func editCard(args []string) {
 	cardID := args[0]
 	cardPath := path.Join(cardsDir, cardID+".md")
-	if !X.IsPathExist(cardPath) {
+	if !kit.IsPathExist(cardPath) {
 		bs := GenerateEmptyCardContent(cardID)
 		ioutil.WriteFile(cardPath, bs, 0666)
 	}
@@ -151,7 +151,7 @@ func sync() {
 
 func componentsFromString(content string) []string {
 	seps := []string{"<!--front-->", "<!--back-->"}
-	lines := X.Lines(string(content))
+	lines := kit.Lines(string(content))
 	var components []string
 	l, h, i := 0, 0, 0
 	for h < len(lines) {

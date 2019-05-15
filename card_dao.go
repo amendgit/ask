@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/amendgit/X"
+	"github.com/amendgit/kit"
 	yaml "gopkg.in/yaml.v3"
 )
 
@@ -131,7 +131,7 @@ func (cardDAO *CardDAO) ReadFromFile(path string) *Card {
 // ParseFromString 从字符串中解析卡片数据
 func (cardDAO *CardDAO) ParseFromString(s string) *Card {
 	seps := []string{"<!--front-->", "<!--back-->"}
-	lines := X.Lines(string(s))
+	lines := kit.Lines(string(s))
 	var components []string
 	l, h, i := 0, 0, 0
 	for h < len(lines) {
