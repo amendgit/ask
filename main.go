@@ -166,8 +166,5 @@ func componentsFromString(content string) []string {
 }
 
 func build() {
-	goPath := os.Getenv("GOPATH")
-	srcPath := path.Join(goPath, "src")
-	pkgPath, _ := filepath.Rel(srcPath, soruceDir)
-	exec.Command("go", "build", pkgPath).Run()
+	exec.Command("go", "build", "github.com/amendgit/ask").Run()
 }
