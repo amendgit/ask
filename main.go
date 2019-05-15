@@ -18,6 +18,8 @@ var (
 )
 
 func main() {
+	db := GetAskDB()
+	defer db.Close()
 	if len(os.Args) <= 1 {
 		review()
 		return
