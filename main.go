@@ -64,7 +64,7 @@ func review() {
 	fmt.Printf("Answer:\n %s\n\n", card.Answer)
 	var opt int
 	for opt <= 0 || opt > 2 {
-		fmt.Printf("1.记得            2.不记得\n")
+		fmt.Printf("是否记得（1.记得 2.不记得）: ")
 		fmt.Scanf("%d", &opt)
 	}
 	if opt == 1 {
