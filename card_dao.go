@@ -61,7 +61,7 @@ func (cardDAO *CardDAO) Add(card *Card) {
 func (cardDAO *CardDAO) Update(card *Card) {
 	db := GetAskDB()
 	tx, _ := db.Begin()
-	updateStmt, err := tx.Prepare("update cards set title=?, question=?, answer=?, review_time=?, card.Level where id==?")
+	updateStmt, err := tx.Prepare("update cards set title=?, question=?, answer=?, review_time=?, level=? where id==?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func (cardDAO *CardDAO) ParseString(s string) *Card {
 		l, h, i = h+1, h+1, i+1
 	}
 	var card Card
-	yaml.Unmarshal([]byte(components[0]), &card.Metadata)
+	yaml.Unmarshal([]byte(components[0]), &card)
 	card.Question = components[1]
 	card.Answer = components[2]
 	card.ReviewTime = time.Now()

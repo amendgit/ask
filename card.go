@@ -2,28 +2,15 @@ package main
 
 import (
 	"bytes"
-	"strings"
 	"text/template"
 	"time"
 )
 
-// Metadata 表示一个卡片的元数据。
-type Metadata struct {
-	ID    string   `yaml:"id"`
-	Title string   `yaml:"title"`
-	Tags  []string `yaml:"tags"`
-}
-
-func (metadata *Metadata) String() string {
-	s := ""
-	s = s + "tags: " + "[" + strings.Join(metadata.Tags, ",") + "]\n"
-	s = s + "title: " + metadata.Title + "\n"
-	return s
-}
-
 // Card 表示一个卡片的实体类。
 type Card struct {
-	Metadata
+	ID         string   `yaml:"id"`
+	Title      string   `yaml:"title"`
+	Tags       []string `yaml:"tags"`
 	Question   string
 	Answer     string
 	ReviewTime time.Time
