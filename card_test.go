@@ -5,8 +5,8 @@ import (
 )
 
 func TestCard(t *testing.T) {
-	var card Card
-	card.FromString(`---
+	cardDAO := NewCardDAO()
+	card := cardDAO.ParseString(`---
 id: acid
 title: DBMS中的ACID指的是什么？
 tags:
