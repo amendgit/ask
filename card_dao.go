@@ -33,6 +33,22 @@ func (cardDAO *CardDAO) Get(id string) *Card {
 	return nil
 }
 
+// GetAllCards 获取当前所有的卡片
+func (cardDAO *CardDAO) GetAllCards() []Card {
+	db := GetAskDB()
+	rows, err := db.Query("select id, title, question, answer, review_time from cards")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var cards []Card
+	for rows.Next() {
+		var card Card
+		rows.Scan(&card.ID, &card.Title, &card.Question, &card.Answer, &card.ReviewTime)
+		cards = append(cards, card)
+	}
+	return cards
+}
+
 // Add 添加一个卡片的数据到数据库中
 func (cardDAO *CardDAO) Add(card *Card) {
 	db := GetAskDB()
@@ -73,7 +89,7 @@ func (cardDAO *CardDAO) Update(card *Card) {
 
 // Delete 从数据库中删除一条记录
 func (cardDAO *CardDAO) Delete(id string) {
-
+	// todo
 }
 
 // PickOneCard 优先找是否有过期的卡片，没有的话再找一张新的卡片。
@@ -163,5 +179,9 @@ func (cardDAO *CardDAO) ParseString(s string) *Card {
 	card.ReviewTime = time.Now()
 	hash := md5.Sum([]byte(s))
 	card.Hash = hex.EncodeToString(hash[:])
+	// 当标题为空时，用问题填充。
+	if card.Title == "" {
+		card.Title = kit.Lines(card.Question)[0]
+	}
 	return &card
 }

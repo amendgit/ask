@@ -34,6 +34,8 @@ func main() {
 		sync()
 	case "build":
 		build()
+	case "list":
+		list()
 	}
 }
 
@@ -81,6 +83,16 @@ func sync() {
 	for _, cardFileInfo := range cardFileInfos {
 		card := cardDAO.ReadFile("./cards/" + cardFileInfo.Name())
 		cardDAO.Add(card)
+	}
+}
+
+// list 用来列举当前有哪些问题
+func list() {
+	cardDAO := NewCardDAO()
+	cards := cardDAO.GetAllCards()
+	for i := 0; i < len(cards); i++ {
+		card := cards[i]
+		fmt.Printf("%-30v %v \t %v\n", card.ID, card.ReviewTime, card.Title)
 	}
 }
 

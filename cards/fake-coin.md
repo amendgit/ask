@@ -1,8 +1,8 @@
 ---
 id: fake-coin
-title: null
+title: 找出假硬币
 tags:
-    - null
+    - iq
 ---
 
 <!--front-->
@@ -10,9 +10,4 @@ tags:
 注意：不知道假银元是比真银元更重还是更轻。
 
 <!--back-->
-* 将12块银元分成4组，ABCD，每组各自3个，A和B称
-	- A和B相等
-		* A和C称
-			- A和C相等
-				* A和D称
-					- A比D重
+todo
