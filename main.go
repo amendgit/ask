@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	sourceDir = kit.SourceDir()
-	cardsDir  = path.Join(sourceDir, "cards")
+	gSourceDir = kit.SourceDir()
+	gCardsDir  = path.Join(gSourceDir, "cards")
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 	switch opt {
 	case "help":
 		help(args)
-	case "u", "update":
+	case "w", "write":
 		update(args)
 	case "sync":
 		sync()
@@ -47,7 +47,7 @@ func help(args []string) {
 // update 编辑或者更新一张卡片。
 func update(args []string) {
 	cardID := args[0]
-	cardPath := path.Join(cardsDir, cardID+".md")
+	cardPath := path.Join(gCardsDir, cardID+".md")
 	if !kit.IsPathExist(cardPath) {
 		bs := GenerateAnEmptyCard(cardID)
 		ioutil.WriteFile(cardPath, bs, 0666)
@@ -79,7 +79,7 @@ func review() {
 // sync 将cards目录下的markdown文件，同步到数据库中去。
 func sync() {
 	cardDAO := NewCardDAO()
-	cardFileInfos, _ := ioutil.ReadDir(cardsDir)
+	cardFileInfos, _ := ioutil.ReadDir(gCardsDir)
 	for _, cardFileInfo := range cardFileInfos {
 		card := cardDAO.ReadFile("./cards/" + cardFileInfo.Name())
 		cardDAO.Add(card)
