@@ -1,6 +1,7 @@
 ---
 id: self-practice
 title: 使用self的最佳实践
+draft: true
 tags:
     - null
 ---

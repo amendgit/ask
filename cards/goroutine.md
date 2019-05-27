@@ -1,6 +1,7 @@
 ---
 id: goroutine
 title: 什么是goroutine?
+draft: true
 tags:
     - null
 ---

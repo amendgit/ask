@@ -2,7 +2,6 @@
 id: oc-memory-manager
 title: 讲一下 iOS 内存管理的理解
 tags:
-    - oc
     - ios
 ---
 

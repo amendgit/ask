@@ -1,6 +1,8 @@
 ---
-id   : OSCache
-title: OSCache
+id   : os-cache
+title: os-cache
+tags:
+    - os
 ---
 
 <!--front-->
