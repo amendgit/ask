@@ -12,6 +12,7 @@ type Card struct {
 	ID         string   `yaml:"id"`
 	Title      string   `yaml:"title"`
 	Tags       []string `yaml:"tags"`
+	Draft      bool     `yaml:"draft"`
 	Question   string
 	Answer     string
 	ReviewTime time.Time
@@ -25,6 +26,7 @@ func GenerateAnEmptyCard(id string) []byte {
 		`---
 id: {{.id}}
 title: null
+draft: true
 tags:
     - null
 ---

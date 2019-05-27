@@ -82,7 +82,9 @@ func sync() {
 	cardFileInfos, _ := ioutil.ReadDir(gCardsDir)
 	for _, cardFileInfo := range cardFileInfos {
 		card := cardDAO.ReadFile("./cards/" + cardFileInfo.Name())
-		cardDAO.Add(card)
+		if card != nil && card.Draft {
+			cardDAO.Add(card)
+		}
 	}
 }
 

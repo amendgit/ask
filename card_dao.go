@@ -151,6 +151,7 @@ func (cardDAO *CardDAO) PickOneOutdateCard() *Card {
 
 // ReadFile 从文件中读取文件
 func (cardDAO *CardDAO) ReadFile(path string) *Card {
+	log.Printf("card path %v", path)
 	bs, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil
