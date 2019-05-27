@@ -9,19 +9,23 @@ tags:
 iOS系统是如何查找第一响应者的？
 
 <!--back-->
-基础API
+## 基础API
 
 查找第一响应者时，有两个非常关键的API，查找第一响应者就是通过不断调用子视图的这两个API完成的。
 
 调用方法，获取到被点击的视图，也就是第一响应者。
 
+```object-c
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event;
+```
 
 hitTest:withEvent:方法内部会通过调用这个方法，来判断点击区域是否在视图上，是则返回YES，不是则返回NO。
 
+```object-c
 - (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event;
+```
 
-查找第一响应者
+## 查找第一响应者
 
 应用程序接收到事件后，将事件交给keyWindow并转发给根视图，根视图按照视图层级逐级遍历子视图，并且遍历的过程中不断判断视图范围，并最终找到第一响应者。
 
@@ -37,3 +41,29 @@ hitTest:withEvent:方法内部会通过调用这个方法，来判断点击区�
 * 视图的userInteractionEnabled为NO。
 
 如果点击事件是发生在视图外，但在其子视图内部，子视图也不能接收事件并成为第一响应者。这是因为在其父视图进行hitTest:withEvent:的过程中，就会将其忽略掉。
+
+## hitTest的可能实现
+
+```object-c
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    if (self.alpha <= 0.01 || self.userInteractionEnabled == NO || self.hidden) {
+        return nil;
+    }
+    
+    BOOL inside = [self pointInside:point withEvent:event];
+    if (inside) {
+        NSArray *subViews = self.subviews;
+        // 对子视图从上向下找
+        for (NSInteger i = subViews.count - 1; i >= 0; i--) {
+            UIView *subView = subViews[i];
+            CGPoint insidePoint = [self convertPoint:point toView:subView];
+            UIView *hitView = [subView hitTest:insidePoint withEvent:event];
+            if (hitView) {
+                return hitView;
+            }
+        }
+        return self;
+    }
+    return nil;
+}
+```

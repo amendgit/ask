@@ -1,6 +1,6 @@
 ---
 id: dto
-title: 什么DTO对象？
+title: null
 tags:
     - design
 ---

@@ -16,6 +16,6 @@ tags:
 - 不需要显示的调用 `Dealloc`。
 - 使用 `@autoreleasePool` 来代替 `NSAutoreleasePool`。
 - 不可以使用区域 `NSZone`。
-- 对象性变量不可以作为 `C` 语言的结构体成员。
+- 对象类型的变量不可以作为 `C` 语言的结构体成员。
 - 显示转换 `id` 和 `void*`。
 

@@ -1,13 +1,15 @@
 ---
-id   : CPUCacheReplacementPolicies
-title: CPUCacheReplacementPolicies
+id: cpu-cache-replacement-policies
+title: null
+tags:
+    - os
 ---
 
 <!--front-->
-
-
+CPU高速缓存的替换策略有哪些？
 
 <!--back-->
-
-
-
+根据程序局部性规律可知，程序在运行中，总是频繁地使用那些最近被使用过的指令和数据。
+* 随机法（RAND法）：随机的确定替换的存储块，这种方法简单、易于实现，但命中率比较低。
+* 先进先出法（FIFO法）：选择那个最先调入的那个块进行替换，Solar－16/65机Cache采用组相联先入先出法，每组4块。
+* 最近最少使用法（LRU法）：选择那个最近最少使用的块被替换，实现有计数器方法、寄存器栈法、比较对法，IBM 370/65组相联法，每组4块。
