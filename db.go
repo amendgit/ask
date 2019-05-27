@@ -9,7 +9,7 @@ import (
 
 var gAskDB *sql.DB
 
-// GetAskDB 获取当前的数据库连接
+// GetAskDB 获取当前的数据库连接，注意此方法不支持多线程访问，本程序目前也没有类似的需求。
 func GetAskDB() *sql.DB {
 	if gAskDB == nil {
 		db, err := sql.Open("sqlite3", "./ask.db")

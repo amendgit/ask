@@ -21,7 +21,7 @@ func main() {
 	db := GetAskDB()
 	defer db.Close()
 	if len(os.Args) <= 1 {
-		review()
+		review("")
 		return
 	}
 	opt, args := os.Args[1], os.Args[2:]
@@ -36,6 +36,9 @@ func main() {
 		build()
 	case "list":
 		list()
+	default:
+		name := args[0]
+		review(name)
 	}
 }
 
@@ -56,9 +59,14 @@ func update(args []string) {
 }
 
 // review 选取下一张需要复习的卡片，并进行复习。
-func review() {
+func review(name string) {
 	cardDAO := NewCardDAO()
-	card := cardDAO.PickOneCard()
+	var card *Card
+	if len(name) >= 0 {
+		card = cardDAO.Get(name)
+	} else {
+		card = cardDAO.PickOneCard()
+	}
 	fmt.Printf("准备复习卡片: %v\n\n", card.ID)
 	fmt.Printf("Question:\n %s\n\n", card.Question)
 	var anyKey string
@@ -82,8 +90,13 @@ func sync() {
 	cardFileInfos, _ := ioutil.ReadDir(gCardsDir)
 	for _, cardFileInfo := range cardFileInfos {
 		card := cardDAO.ReadFile("./cards/" + cardFileInfo.Name())
-		if card != nil && card.Draft {
+		if card != nil && !card.Draft {
+			fmt.Printf("+ %-30v \t %-30v\n", card.ID, card.Title)
 			cardDAO.Add(card)
+		} else if card.Draft {
+			fmt.Printf("~ %-30v \t %-30v \t ./cards/%v\n", card.ID, card.Title, cardFileInfo.Name())
+		} else {
+			fmt.Printf("? ./cards/%v\n", cardFileInfo.Name())
 		}
 	}
 }

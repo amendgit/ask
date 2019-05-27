@@ -29,8 +29,18 @@ func (cardDAO *CardDAO) Save(card *Card) {
 
 // Get 从数据库中获取一个Card记录
 func (cardDAO *CardDAO) Get(id string) *Card {
-	// todo
-	return nil
+	db := GetAskDB()
+	rows, err := db.Query("select id, title, question, answer, review_time from cards")
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rows.Next() {
+		var card Card
+		rows.Scan(&card.ID, &card.Title, &card.Question, &card.Answer, &card.ReviewTime)
+		return &card
+	} else {
+		return nil
+	}
 }
 
 // GetAllCards 获取当前所有的卡片
@@ -151,7 +161,6 @@ func (cardDAO *CardDAO) PickOneOutdateCard() *Card {
 
 // ReadFile 从文件中读取文件
 func (cardDAO *CardDAO) ReadFile(path string) *Card {
-	log.Printf("card path %v", path)
 	bs, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil
