@@ -62,7 +62,7 @@ func update(args []string) {
 func review(name string) {
 	cardDAO := NewCardDAO()
 	var card *Card
-	if len(name) >= 0 {
+	if len(name) > 0 {
 		card = cardDAO.Get(name)
 	} else {
 		card = cardDAO.PickOneCard()
@@ -91,10 +91,10 @@ func sync() {
 	for _, cardFileInfo := range cardFileInfos {
 		card := cardDAO.ReadFile("./cards/" + cardFileInfo.Name())
 		if card != nil && !card.Draft {
-			fmt.Printf("+ %-30v \t %-30v\n", card.ID, card.Title)
+			fmt.Printf("+ %-30v  %-35v\n", card.ID, card.Title)
 			cardDAO.Add(card)
 		} else if card.Draft {
-			fmt.Printf("~ %-30v \t %-30v \t ./cards/%v\n", card.ID, card.Title, cardFileInfo.Name())
+			fmt.Printf("~ %-30v  %-35v\n", card.ID, card.Title)
 		} else {
 			fmt.Printf("? ./cards/%v\n", cardFileInfo.Name())
 		}
@@ -107,7 +107,7 @@ func list() {
 	cards := cardDAO.GetAllCards()
 	for i := 0; i < len(cards); i++ {
 		card := cards[i]
-		fmt.Printf("%-30v %v \t %v\n", card.ID, card.ReviewTime, card.Title)
+		fmt.Printf("%-30v  %v  %v\n", card.ID, card.ReviewTime, card.Title)
 	}
 }
 

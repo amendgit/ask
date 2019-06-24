@@ -1,6 +1,7 @@
 ---
 id   : os-cache
 title: os-cache
+draft: true
 tags:
     - os
 ---
@@ -10,6 +11,4 @@ tags:
 什么是高速缓存？
 
 <!--back-->
-
-
-
+todo
